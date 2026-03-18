@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Grind Log</title>
+<title>Daily Workout</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -177,7 +177,7 @@ select option{background:var(--s2);}
 
 <div id="header">
   <div>
-    <div class="logo">Grind Log</div>
+    <div class="logo">Daily Workout</div>
     <div class="logo-sub">Calisthenics Tracker</div>
   </div>
   <div id="header-date"></div>
@@ -382,7 +382,7 @@ let S = loadState();
 
 function loadState() {
   try {
-    const raw = localStorage.getItem('grindlog_v2');
+    const raw = localStorage.getItem('dailyworkout_v2');
     if (raw) return JSON.parse(raw);
   } catch(e){}
   return {
@@ -393,7 +393,7 @@ function loadState() {
 }
 
 function save() {
-  localStorage.setItem('grindlog_v2', JSON.stringify(S));
+  localStorage.setItem('dailyworkout_v2', JSON.stringify(S));
 }
 
 function todayStr() {
