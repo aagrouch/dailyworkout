@@ -1,0 +1,972 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Grind Log</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #111;
+  --s1: #191919;
+  --s2: #222;
+  --s3: #2c2c2c;
+  --border: #333;
+  --accent: #f0e040;
+  --green: #4effa0;
+  --orange: #ff7c40;
+  --blue: #40c8ff;
+  --red: #ff4060;
+  --text: #eee;
+  --muted: #666;
+  --muted2: #999;
+  --r: 8px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;display:flex;flex-direction:column;}
+
+/* ── HEADER ── */
+#header{padding:14px 16px 10px;border-bottom:1px solid var(--border);flex-shrink:0;display:flex;align-items:center;gap:10px;}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:1.9rem;letter-spacing:3px;color:var(--accent);line-height:1;}
+.logo-sub{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:1px;}
+#header-date{margin-left:auto;text-align:right;font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);line-height:1.6;}
+
+/* ── NAV ── */
+#nav{display:flex;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg);position:sticky;top:0;z-index:50;}
+.nav-btn{flex:1;padding:12px 4px;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;user-select:none;}
+.nav-btn.active{color:var(--accent);border-bottom-color:var(--accent);}
+.nav-btn:hover:not(.active){color:var(--text);}
+
+/* ── PANELS ── */
+#panels{flex:1;overflow:hidden;position:relative;}
+.panel{position:absolute;inset:0;overflow-y:auto;display:none;padding:16px;}
+.panel.active{display:block;}
+.panel-inner{max-width:540px;margin:0 auto;}
+
+/* ── TYPOGRAPHY ── */
+.sec{font-family:'Bebas Neue',sans-serif;font-size:1.25rem;letter-spacing:2px;color:var(--text);display:flex;align-items:center;gap:10px;margin:18px 0 12px;}
+.sec::after{content:'';flex:1;height:1px;background:var(--border);}
+.sec:first-child{margin-top:0;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+.label{font-family:'IBM Plex Mono',monospace;font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+
+/* ── CARDS ── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.card+.card{margin-top:0;}
+
+/* ── INPUTS ── */
+input,textarea,select{background:var(--s2);border:1px solid var(--border);border-radius:6px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:.85rem;padding:9px 11px;width:100%;outline:none;transition:border-color .2s;appearance:none;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+textarea{resize:vertical;min-height:60px;font-size:.8rem;}
+select{cursor:pointer;}
+select option{background:var(--s2);}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.igroup{display:flex;flex-direction:column;gap:5px;}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:9px 14px;border-radius:6px;font-family:'IBM Plex Mono',monospace;font-size:.7rem;letter-spacing:1px;text-transform:uppercase;cursor:pointer;border:none;transition:all .15s;font-weight:500;white-space:nowrap;}
+.btn-y{background:var(--accent);color:#000;width:100%;margin-top:8px;}
+.btn-y:hover{filter:brightness(1.1);}
+.btn-g{background:transparent;color:var(--green);border:1px solid var(--green);}
+.btn-g:hover{background:rgba(78,255,160,.1);}
+.btn-o{background:transparent;color:var(--orange);border:1px solid var(--orange);}
+.btn-ghost{background:var(--s2);border:1px solid var(--border);color:var(--text);}
+.btn-ghost:hover{border-color:var(--accent);color:var(--accent);}
+.btn-del{background:transparent;color:var(--red);border:1px solid transparent;font-size:.6rem;padding:3px 7px;}
+.btn-del:hover{border-color:var(--red);}
+.btn-sm{padding:6px 10px;font-size:.62rem;}
+.btn-full{width:100%;}
+.btn-row{display:flex;gap:8px;margin-top:8px;}
+
+/* ── CHIPS / BADGES ── */
+.chip{display:inline-flex;align-items:center;gap:6px;background:var(--s2);border:1px solid var(--border);border-radius:20px;padding:4px 10px;font-family:'IBM Plex Mono',monospace;font-size:.75rem;}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:.6rem;letter-spacing:1px;text-transform:uppercase;}
+.badge-pr{background:#1a3300;color:var(--green);border:1px solid var(--green);}
+.badge-cindy{background:#2a2200;color:var(--accent);border:1px solid var(--accent);}
+
+/* ── TODAY LOG ── */
+.exercise-entry{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px;position:relative;}
+.exercise-entry-header{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
+.exercise-name-display{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;flex:1;}
+.metric-row{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px;}
+.metric-item{display:flex;flex-direction:column;gap:3px;flex:1;min-width:80px;}
+.metric-label{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.metric-input{background:var(--s2);border:1px solid var(--border);border-radius:5px;color:var(--text);font-family:'IBM Plex Mono',monospace;font-size:.85rem;padding:7px 9px;width:100%;outline:none;transition:border-color .2s;}
+.metric-input:focus{border-color:var(--accent);}
+.metric-input[type=checkbox]{width:18px;height:18px;accent-color:var(--accent);cursor:pointer;}
+
+/* ── EXERCISE PICKER ── */
+.ex-picker{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.ex-tag{padding:6px 12px;border-radius:20px;border:1px solid var(--border);background:var(--s2);font-family:'IBM Plex Mono',monospace;font-size:.68rem;cursor:pointer;transition:all .15s;color:var(--muted2);}
+.ex-tag:hover{border-color:var(--accent);color:var(--accent);}
+.ex-tag.selected{background:var(--accent);color:#000;border-color:var(--accent);}
+
+/* ── HISTORY ── */
+.hist-item{border-left:3px solid var(--border);padding:10px 13px;margin-bottom:8px;background:var(--s1);border-radius:0 var(--r) var(--r) 0;}
+.hist-item.has-cindy{border-left-color:var(--accent);}
+.hist-item.has-pr{border-left-color:var(--green);}
+.hist-date{font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted);margin-bottom:5px;display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.hist-ex{margin-top:5px;}
+.hist-ex-name{font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;color:var(--text);}
+.hist-metrics{font-family:'IBM Plex Mono',monospace;font-size:.7rem;color:var(--muted2);margin-top:2px;line-height:1.6;}
+.hist-note{font-size:.72rem;color:var(--muted);margin-top:4px;font-style:italic;line-height:1.5;}
+
+/* ── STATS ── */
+.stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.stat-box{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px 12px;text-align:center;}
+.stat-val{font-family:'Bebas Neue',sans-serif;font-size:2.2rem;line-height:1;}
+.stat-lbl{font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);margin-top:3px;letter-spacing:1px;text-transform:uppercase;}
+.chart-box{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.chart-wrap{height:140px;position:relative;}
+
+/* ── EXERCISE LIBRARY ── */
+.lib-item{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:12px;margin-bottom:8px;}
+.lib-item-header{display:flex;align-items:flex-start;gap:8px;}
+.lib-name{font-family:'Bebas Neue',sans-serif;font-size:1.1rem;letter-spacing:1px;flex:1;}
+.lib-cat{font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);letter-spacing:1px;margin-top:2px;}
+.lib-metrics{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px;}
+.lib-metric-chip{background:var(--s2);border:1px solid var(--border);border-radius:4px;padding:2px 8px;font-family:'IBM Plex Mono',monospace;font-size:.62rem;color:var(--muted2);}
+.cat-color{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:4px;}
+
+/* ── MODAL ── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .2s;}
+.modal-bg.open{opacity:1;pointer-events:all;}
+.modal{background:var(--s1);border:1px solid var(--border);border-radius:14px 14px 0 0;padding:20px 16px;width:100%;max-width:540px;max-height:85vh;overflow-y:auto;transform:translateY(30px);transition:transform .25s;}
+.modal-bg.open .modal{transform:translateY(0);}
+.modal-title{font-family:'Bebas Neue',sans-serif;font-size:1.4rem;letter-spacing:2px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.close-btn{background:var(--s2);border:1px solid var(--border);border-radius:50%;width:28px;height:28px;color:var(--muted);font-size:1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+
+/* ── METRIC BUILDER ── */
+.metric-def-row{display:flex;align-items:center;gap:6px;margin-bottom:6px;background:var(--s2);border-radius:6px;padding:8px;}
+.metric-def-name{flex:1;font-family:'IBM Plex Mono',monospace;font-size:.75rem;color:var(--text);}
+
+/* ── STREAK DOTS ── */
+.streak-grid{display:flex;flex-wrap:wrap;gap:4px;}
+.s-dot{width:26px;height:26px;border-radius:5px;background:var(--s2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:.52rem;color:var(--muted);cursor:default;}
+.s-dot.active{background:#112200;border-color:var(--green);color:var(--green);}
+.s-dot.cindy{background:#2a2200;border-color:var(--accent);color:var(--accent);}
+
+/* ── CAT COLORS ── */
+.c-pull{background:#ff7c40;}
+.c-push{background:#40c8ff;}
+.c-leg{background:#4effa0;}
+.c-wod{background:#f0e040;}
+.c-skill{background:#c040ff;}
+.c-other{background:#888;}
+
+/* ── TOAST ── */
+#toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(10px);background:var(--accent);color:#000;font-family:'IBM Plex Mono',monospace;font-size:.72rem;letter-spacing:1px;padding:9px 18px;border-radius:20px;opacity:0;transition:all .25s;pointer-events:none;z-index:999;white-space:nowrap;}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+.empty{text-align:center;padding:28px 16px;color:var(--muted);font-family:'IBM Plex Mono',monospace;font-size:.72rem;line-height:1.8;}
+
+/* ── PROGRESS BAR ── */
+.prog-bar-bg{height:5px;background:var(--s3);border-radius:3px;overflow:hidden;margin-top:6px;}
+.prog-bar-fill{height:100%;border-radius:3px;transition:width .5s ease;}
+.prog-labels{display:flex;justify-content:space-between;font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);margin-top:3px;}
+
+@media(min-width:560px){
+  #header,#nav,.panel-inner{max-width:540px;margin-left:auto;margin-right:auto;}
+  #header,#nav{padding-left:0;padding-right:0;}
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div>
+    <div class="logo">Grind Log</div>
+    <div class="logo-sub">Calisthenics Tracker</div>
+  </div>
+  <div id="header-date"></div>
+</div>
+
+<div id="nav">
+  <div class="nav-btn active" data-panel="today">📋 Today</div>
+  <div class="nav-btn" data-panel="history">📅 History</div>
+  <div class="nav-btn" data-panel="stats">📈 Stats</div>
+  <div class="nav-btn" data-panel="library">🗂 Library</div>
+</div>
+
+<div id="panels">
+
+  <!-- ═══════════ TODAY ═══════════ -->
+  <div class="panel active" id="panel-today">
+    <div class="panel-inner">
+
+      <div class="sec">Today's Session</div>
+
+      <!-- Quick-add from library -->
+      <div class="card">
+        <div class="label">Add exercise to today</div>
+        <div class="ex-picker" id="ex-picker"></div>
+        <div class="btn-row">
+          <button class="btn btn-ghost btn-sm" onclick="openNewExModal()">+ New exercise</button>
+          <button class="btn btn-ghost btn-sm" onclick="addCustomFreeform()">+ Quick note</button>
+        </div>
+      </div>
+
+      <!-- Today's logged exercises -->
+      <div id="today-entries"></div>
+
+      <!-- Global notes -->
+      <div class="card" id="notes-card" style="margin-top:4px;">
+        <div class="label">Day notes</div>
+        <textarea id="day-notes" placeholder="Overall feel, conditions, anything notable…"></textarea>
+      </div>
+
+      <button class="btn btn-y" onclick="saveToday()">💾 Save Today</button>
+      <div style="height:24px;"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ HISTORY ═══════════ -->
+  <div class="panel" id="panel-history">
+    <div class="panel-inner">
+      <div class="sec">Log History</div>
+      <div id="history-list"></div>
+      <div style="height:24px;"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ STATS ═══════════ -->
+  <div class="panel" id="panel-stats">
+    <div class="panel-inner">
+      <div class="sec">Overview</div>
+      <div class="stat-grid" id="stat-grid"></div>
+
+      <div class="sec">Cindy Trend</div>
+      <div class="chart-box">
+        <div class="chart-wrap"><canvas id="chart-cindy"></canvas></div>
+      </div>
+
+      <div class="sec">Pull-up Volume (daily)</div>
+      <div class="chart-box">
+        <div class="chart-wrap"><canvas id="chart-pullup"></canvas></div>
+      </div>
+
+      <div class="sec">Activity — Last 30 Days</div>
+      <div class="card">
+        <div class="streak-grid" id="streak-grid"></div>
+        <div style="display:flex;gap:14px;margin-top:10px;font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);">
+          <span style="color:var(--green);">■</span> Logged &nbsp;
+          <span style="color:var(--accent);">■</span> Cindy day
+        </div>
+      </div>
+
+      <div class="sec">PRs by Exercise</div>
+      <div id="pr-list"></div>
+      <div style="height:24px;"></div>
+    </div>
+  </div>
+
+  <!-- ═══════════ LIBRARY ═══════════ -->
+  <div class="panel" id="panel-library">
+    <div class="panel-inner">
+      <div class="sec">Exercise Library</div>
+      <button class="btn btn-g btn-full" onclick="openNewExModal()" style="margin-bottom:12px;">+ Add New Exercise</button>
+      <div id="library-list"></div>
+      <div style="height:24px;"></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════ NEW EXERCISE MODAL ═══════════ -->
+<div class="modal-bg" id="modal-bg" onclick="closeModal(event)">
+  <div class="modal">
+    <div class="modal-title">
+      <span id="modal-title-text">New Exercise</span>
+      <button class="close-btn" onclick="closeModalDirect()">✕</button>
+    </div>
+    <div id="modal-body"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<script>
+// ═══════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════
+const DEFAULT_LIBRARY = [
+  {
+    id: 'pullups', name: 'Pull-ups', cat: 'pull',
+    metrics: [
+      {key:'sets', label:'Sets', type:'number'},
+      {key:'reps', label:'Reps / set', type:'text'},
+      {key:'total', label:'Total reps', type:'number'},
+    ],
+    prMetric: 'total', notes: true
+  },
+  {
+    id: 'cindy', name: 'Cindy', cat: 'wod',
+    metrics: [
+      {key:'rounds', label:'Rounds (20 min)', type:'number'},
+      {key:'partial', label:'Partial round', type:'text'},
+    ],
+    prMetric: 'rounds', notes: true
+  },
+  {
+    id: 'pushups', name: 'Push-ups', cat: 'push',
+    metrics: [
+      {key:'sets', label:'Sets', type:'number'},
+      {key:'total', label:'Total reps', type:'number'},
+    ],
+    prMetric: 'total', notes: true
+  },
+  {
+    id: 'pistol_squat', name: 'Pistol Squat', cat: 'leg',
+    metrics: [
+      {key:'left', label:'Left reps', type:'number'},
+      {key:'right', label:'Right reps', type:'number'},
+      {key:'level', label:'Level (partial/full/weighted)', type:'text'},
+    ],
+    prMetric: null, notes: true
+  },
+  {
+    id: 'shrimp_squat', name: 'Shrimp Squat', cat: 'leg',
+    metrics: [
+      {key:'left', label:'Left reps', type:'number'},
+      {key:'right', label:'Right reps', type:'number'},
+      {key:'level', label:'Level (assisted/partial/full)', type:'text'},
+    ],
+    prMetric: null, notes: true
+  },
+  {
+    id: 'pistol_shrimp_combo', name: 'Pistol+Shrimp Combo', cat: 'leg',
+    metrics: [
+      {key:'left_done', label:'Left leg done?', type:'checkbox'},
+      {key:'right_done', label:'Right leg done?', type:'checkbox'},
+      {key:'quality', label:'Quality notes', type:'text'},
+    ],
+    prMetric: null, notes: true
+  },
+  {
+    id: 'muscle_up', name: 'Muscle-up', cat: 'skill',
+    metrics: [
+      {key:'reps', label:'Reps', type:'number'},
+      {key:'type', label:'Type (kip/strict)', type:'text'},
+    ],
+    prMetric: 'reps', notes: true
+  },
+  {
+    id: 'oapu', name: 'One-Arm Pull-up', cat: 'skill',
+    metrics: [
+      {key:'left', label:'Left (reps/attempt)', type:'text'},
+      {key:'right', label:'Right (reps/attempt)', type:'text'},
+    ],
+    prMetric: null, notes: true
+  },
+  {
+    id: 'dips', name: 'Dips', cat: 'push',
+    metrics: [
+      {key:'sets', label:'Sets', type:'number'},
+      {key:'total', label:'Total reps', type:'number'},
+    ],
+    prMetric: 'total', notes: true
+  },
+  {
+    id: 'squats', name: 'Air Squats', cat: 'leg',
+    metrics: [
+      {key:'total', label:'Total reps', type:'number'},
+    ],
+    prMetric: 'total', notes: false
+  },
+];
+
+let S = loadState();
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem('grindlog_v2');
+    if (raw) return JSON.parse(raw);
+  } catch(e){}
+  return {
+    library: DEFAULT_LIBRARY,
+    logs: [],          // [{date, exercises:[{exId, metrics:{}, note}], dayNote}]
+    todayDraft: {exercises:[], dayNote:''},
+  };
+}
+
+function save() {
+  localStorage.setItem('grindlog_v2', JSON.stringify(S));
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0,10);
+}
+
+function fmtDate(str) {
+  return new Date(str+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'2-digit'});
+}
+
+function fmtDateLong(str) {
+  return new Date(str+'T12:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+}
+
+function getEx(id) {
+  return S.library.find(e=>e.id===id);
+}
+
+const CAT_COLORS = {pull:'var(--orange)',push:'var(--blue)',leg:'var(--green)',wod:'var(--accent)',skill:'#c040ff',other:'var(--muted)'};
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2200);
+}
+
+// ═══════════════════════════════════════════════
+// HEADER
+// ═══════════════════════════════════════════════
+(function(){
+  const d = new Date();
+  document.getElementById('header-date').innerHTML =
+    d.toLocaleDateString('en-US',{weekday:'long'})+
+    '<br>'+d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+})();
+
+// ═══════════════════════════════════════════════
+// NAV
+// ═══════════════════════════════════════════════
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    const p = document.getElementById('panel-'+btn.dataset.panel);
+    p.classList.add('active');
+    if (btn.dataset.panel==='history') renderHistory();
+    if (btn.dataset.panel==='stats') renderStats();
+    if (btn.dataset.panel==='library') renderLibrary();
+  });
+});
+
+// ═══════════════════════════════════════════════
+// TODAY
+// ═══════════════════════════════════════════════
+function renderToday() {
+  renderExPicker();
+  renderTodayEntries();
+  // Load day note
+  const today = todayStr();
+  const existingLog = S.logs.find(l=>l.date===today);
+  if (existingLog) {
+    document.getElementById('day-notes').value = existingLog.dayNote || '';
+    S.todayDraft = {exercises: JSON.parse(JSON.stringify(existingLog.exercises)), dayNote: existingLog.dayNote||''};
+  } else {
+    document.getElementById('day-notes').value = S.todayDraft.dayNote || '';
+  }
+}
+
+function renderExPicker() {
+  const picker = document.getElementById('ex-picker');
+  picker.innerHTML = '';
+  S.library.forEach(ex => {
+    const added = S.todayDraft.exercises.find(e=>e.exId===ex.id);
+    const tag = document.createElement('div');
+    tag.className = 'ex-tag' + (added ? ' selected' : '');
+    tag.textContent = ex.name;
+    tag.onclick = () => toggleExercise(ex.id);
+    picker.appendChild(tag);
+  });
+}
+
+function toggleExercise(exId) {
+  const idx = S.todayDraft.exercises.findIndex(e=>e.exId===exId);
+  if (idx >= 0) {
+    if (!confirm('Remove this exercise from today?')) return;
+    S.todayDraft.exercises.splice(idx,1);
+  } else {
+    S.todayDraft.exercises.push({exId, metrics:{}, note:''});
+  }
+  renderExPicker();
+  renderTodayEntries();
+}
+
+function addCustomFreeform() {
+  const name = prompt('Quick note label (e.g. "Morning walk", "Stretch session"):');
+  if (!name || !name.trim()) return;
+  // Create a temp freeform entry
+  S.todayDraft.exercises.push({exId:'__freeform__'+Date.now(), customName: name.trim(), metrics:{}, note:''});
+  renderTodayEntries();
+}
+
+function renderTodayEntries() {
+  const container = document.getElementById('today-entries');
+  if (S.todayDraft.exercises.length === 0) {
+    container.innerHTML = '<div class="empty">Tap an exercise above to log it today.</div>';
+    return;
+  }
+  container.innerHTML = '';
+  S.todayDraft.exercises.forEach((entry, ei) => {
+    const isFree = entry.exId.startsWith('__freeform__');
+    const ex = isFree ? null : getEx(entry.exId);
+    const name = isFree ? entry.customName : (ex ? ex.name : '?');
+    const cat = ex ? ex.cat : 'other';
+    const color = CAT_COLORS[cat] || 'var(--muted)';
+
+    const div = document.createElement('div');
+    div.className = 'exercise-entry';
+    div.style.borderLeftColor = color;
+    div.style.borderLeft = `3px solid ${color}`;
+
+    let metricsHTML = '';
+    if (!isFree && ex && ex.metrics.length > 0) {
+      metricsHTML = '<div class="metric-row">';
+      ex.metrics.forEach(m => {
+        const val = entry.metrics[m.key] !== undefined ? entry.metrics[m.key] : '';
+        if (m.type === 'checkbox') {
+          const checked = val === true || val === 'true' || val === 1;
+          metricsHTML += `
+            <div class="metric-item" style="flex:0 0 auto;min-width:auto;">
+              <div class="metric-label">${m.label}</div>
+              <div style="display:flex;align-items:center;gap:8px;padding:7px 0;">
+                <input type="checkbox" class="metric-input" data-ei="${ei}" data-key="${m.key}" ${checked?'checked':''} onchange="updateMetric(${ei},'${m.key}',this.checked)" style="width:20px;height:20px;margin:0;">
+              </div>
+            </div>`;
+        } else {
+          metricsHTML += `
+            <div class="metric-item">
+              <div class="metric-label">${m.label}</div>
+              <input type="${m.type==='number'?'number':'text'}" class="metric-input" placeholder="—" value="${val}" onchange="updateMetric(${ei},'${m.key}',this.value)" oninput="updateMetric(${ei},'${m.key}',this.value)">
+            </div>`;
+        }
+      });
+      metricsHTML += '</div>';
+    }
+
+    const noteVal = entry.note || '';
+
+    div.innerHTML = `
+      <div class="exercise-entry-header">
+        <div style="width:8px;height:8px;border-radius:50%;background:${color};flex-shrink:0;margin-top:2px;"></div>
+        <div class="exercise-name-display">${name}</div>
+        <button class="btn btn-del" onclick="removeEntry(${ei})">✕</button>
+      </div>
+      ${metricsHTML}
+      <div>
+        <div class="metric-label" style="margin-bottom:4px;">Notes</div>
+        <textarea class="metric-input" style="min-height:44px;font-size:.75rem;" placeholder="How'd it feel?" onchange="updateNote(${ei},this.value)" oninput="updateNote(${ei},this.value)">${noteVal}</textarea>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+}
+
+function updateMetric(ei, key, val) {
+  if (!S.todayDraft.exercises[ei]) return;
+  S.todayDraft.exercises[ei].metrics[key] = val;
+}
+
+function updateNote(ei, val) {
+  if (!S.todayDraft.exercises[ei]) return;
+  S.todayDraft.exercises[ei].note = val;
+}
+
+function removeEntry(ei) {
+  S.todayDraft.exercises.splice(ei,1);
+  renderExPicker();
+  renderTodayEntries();
+}
+
+function saveToday() {
+  const today = todayStr();
+  const dayNote = document.getElementById('day-notes').value.trim();
+  S.todayDraft.dayNote = dayNote;
+
+  // Check for PRs
+  const prs = [];
+  S.todayDraft.exercises.forEach(entry => {
+    const ex = getEx(entry.exId);
+    if (!ex || !ex.prMetric) return;
+    const val = parseFloat(entry.metrics[ex.prMetric]);
+    if (!val) return;
+    const best = getBestForEx(entry.exId, today);
+    if (val > best) prs.push(`${ex.name}: ${val} 🏆`);
+  });
+
+  const idx = S.logs.findIndex(l=>l.date===today);
+  const logEntry = {
+    date: today,
+    exercises: JSON.parse(JSON.stringify(S.todayDraft.exercises)),
+    dayNote
+  };
+  if (idx >= 0) S.logs[idx] = logEntry;
+  else S.logs.push(logEntry);
+  save();
+
+  if (prs.length > 0) toast('🏆 New PR! ' + prs.join(', '));
+  else toast('✓ Saved!');
+}
+
+// ═══════════════════════════════════════════════
+// HISTORY
+// ═══════════════════════════════════════════════
+function renderHistory() {
+  const el = document.getElementById('history-list');
+  if (S.logs.length === 0) {
+    el.innerHTML = '<div class="empty">No logs yet.<br>Start logging in the 📋 Today tab!</div>';
+    return;
+  }
+  const sorted = [...S.logs].sort((a,b)=>b.date.localeCompare(a.date));
+  el.innerHTML = sorted.map(log => {
+    const hasCindy = log.exercises.some(e=>e.exId==='cindy');
+    const hasPR = checkLogHasPR(log);
+    const exHTML = log.exercises.map(entry => {
+      const isFree = entry.exId.startsWith('__freeform__');
+      const ex = isFree ? null : getEx(entry.exId);
+      const name = isFree ? entry.customName : (ex ? ex.name : '?');
+      const cat = ex ? ex.cat : 'other';
+      const color = CAT_COLORS[cat] || 'var(--muted)';
+
+      const metrics = ex ? ex.metrics.map(m => {
+        const v = entry.metrics[m.key];
+        if (v === undefined || v === '' || v === null) return null;
+        return `${m.label}: <b>${v === true || v==='true' ? '✓' : v}</b>`;
+      }).filter(Boolean).join(' · ') : '';
+
+      return `
+        <div class="hist-ex">
+          <div class="hist-ex-name" style="color:${color}">${name}</div>
+          ${metrics ? `<div class="hist-metrics">${metrics}</div>` : ''}
+          ${entry.note ? `<div class="hist-note">${entry.note}</div>` : ''}
+        </div>`;
+    }).join('');
+
+    const badges = [
+      hasCindy ? `<span class="badge badge-cindy">Cindy</span>` : '',
+      hasPR ? `<span class="badge badge-pr">PR</span>` : '',
+    ].filter(Boolean).join(' ');
+
+    return `
+      <div class="hist-item ${hasCindy?'has-cindy':''} ${hasPR?'has-pr':''}">
+        <div class="hist-date">${fmtDateLong(log.date)} ${badges}</div>
+        ${exHTML}
+        ${log.dayNote ? `<div class="hist-note" style="margin-top:8px;border-top:1px solid var(--border);padding-top:6px;">📝 ${log.dayNote}</div>` : ''}
+      </div>`;
+  }).join('');
+}
+
+function checkLogHasPR(log) {
+  return log.exercises.some(entry => {
+    const ex = getEx(entry.exId);
+    if (!ex || !ex.prMetric) return false;
+    const val = parseFloat(entry.metrics[ex.prMetric]);
+    if (!val) return false;
+    const best = getBestForEx(entry.exId, log.date);
+    return val > best;
+  });
+}
+
+function getBestForEx(exId, beforeDate) {
+  let best = 0;
+  const ex = getEx(exId);
+  if (!ex || !ex.prMetric) return 0;
+  S.logs.filter(l=>l.date < beforeDate).forEach(log => {
+    log.exercises.filter(e=>e.exId===exId).forEach(entry => {
+      const v = parseFloat(entry.metrics[ex.prMetric]);
+      if (v > best) best = v;
+    });
+  });
+  return best;
+}
+
+// ═══════════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════════
+let chartCindy = null, chartPullup = null;
+
+function renderStats() {
+  renderStatGrid();
+  renderCindyChart();
+  renderPullupChart();
+  renderStreakGrid();
+  renderPRList();
+}
+
+function renderStatGrid() {
+  // Total logged days
+  const totalDays = S.logs.length;
+  // Streak
+  const streak = calcStreak();
+  // Cindy PR
+  let cindyPR = 0;
+  S.logs.forEach(log => {
+    log.exercises.filter(e=>e.exId==='cindy').forEach(e=>{
+      const v = parseFloat(e.metrics.rounds);
+      if (v > cindyPR) cindyPR = v;
+    });
+  });
+  // Pull-up total all time
+  let puTotal = 0;
+  S.logs.forEach(log => {
+    log.exercises.filter(e=>e.exId==='pullups').forEach(e=>{
+      const v = parseFloat(e.metrics.total);
+      if (v) puTotal += v;
+    });
+  });
+
+  document.getElementById('stat-grid').innerHTML = `
+    <div class="stat-box"><div class="stat-val" style="color:var(--accent)">${cindyPR||'—'}</div><div class="stat-lbl">Cindy PR (rds)</div></div>
+    <div class="stat-box"><div class="stat-val" style="color:var(--green)">${streak}</div><div class="stat-lbl">Day Streak</div></div>
+    <div class="stat-box"><div class="stat-val" style="color:var(--orange)">${puTotal||'—'}</div><div class="stat-lbl">Total Pull-ups</div></div>
+    <div class="stat-box"><div class="stat-val" style="color:var(--blue)">${totalDays}</div><div class="stat-lbl">Days Logged</div></div>
+  `;
+}
+
+function calcStreak() {
+  let streak = 0;
+  const sorted = [...S.logs].sort((a,b)=>b.date.localeCompare(a.date));
+  let cur = new Date(); cur.setHours(12,0,0,0);
+  for (const log of sorted) {
+    const d = new Date(log.date+'T12:00:00');
+    const diff = Math.round((cur-d)/86400000);
+    if (diff <= 1) { streak++; cur = d; }
+    else break;
+  }
+  return streak;
+}
+
+function renderCindyChart() {
+  const ctx = document.getElementById('chart-cindy').getContext('2d');
+  if (chartCindy) chartCindy.destroy();
+  const data = [];
+  S.logs.forEach(log => {
+    log.exercises.filter(e=>e.exId==='cindy').forEach(e=>{
+      const v = parseFloat(e.metrics.rounds);
+      if (v) data.push({date:log.date, rounds:v});
+    });
+  });
+  data.sort((a,b)=>a.date.localeCompare(b.date));
+  if (data.length === 0) {
+    ctx.canvas.parentElement.innerHTML += '<div class="empty" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;">Log a Cindy to see your trend</div>';
+    return;
+  }
+  chartCindy = new Chart(ctx, {
+    type:'line',
+    data:{
+      labels: data.map(d=>fmtDate(d.date)),
+      datasets:[{
+        data: data.map(d=>d.rounds),
+        borderColor:'#f0e040', backgroundColor:'rgba(240,224,64,.07)',
+        tension:.35, fill:true, pointBackgroundColor:'#f0e040', pointRadius:5
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#666',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222'}},
+        y:{ticks:{color:'#666',font:{family:'IBM Plex Mono',size:10},stepSize:1},grid:{color:'#222'},min:0}
+      }}
+  });
+}
+
+function renderPullupChart() {
+  const ctx = document.getElementById('chart-pullup').getContext('2d');
+  if (chartPullup) chartPullup.destroy();
+  const data = [];
+  S.logs.forEach(log => {
+    let total = 0;
+    log.exercises.filter(e=>e.exId==='pullups').forEach(e=>{
+      const v = parseFloat(e.metrics.total);
+      if (v) total += v;
+    });
+    if (total > 0) data.push({date:log.date, total});
+  });
+  data.sort((a,b)=>a.date.localeCompare(b.date));
+  if (data.length === 0) return;
+  const recent = data.slice(-14);
+  chartPullup = new Chart(ctx, {
+    type:'bar',
+    data:{
+      labels: recent.map(d=>fmtDate(d.date)),
+      datasets:[{
+        data: recent.map(d=>d.total),
+        backgroundColor:'rgba(255,124,64,.55)', borderColor:'#ff7c40', borderWidth:1, borderRadius:4
+      }]
+    },
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+      scales:{
+        x:{ticks:{color:'#666',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222'}},
+        y:{ticks:{color:'#666',font:{family:'IBM Plex Mono',size:10}},grid:{color:'#222'},min:0}
+      }}
+  });
+}
+
+function renderStreakGrid() {
+  const el = document.getElementById('streak-grid');
+  el.innerHTML = '';
+  for (let i=29;i>=0;i--) {
+    const d = new Date(); d.setDate(d.getDate()-i);
+    const str = d.toISOString().slice(0,10);
+    const log = S.logs.find(l=>l.date===str);
+    const hasCindy = log && log.exercises.some(e=>e.exId==='cindy');
+    const dot = document.createElement('div');
+    dot.className = 's-dot' + (hasCindy?' cindy':log?' active':'');
+    dot.title = str;
+    dot.textContent = d.getDate();
+    el.appendChild(dot);
+  }
+}
+
+function renderPRList() {
+  const el = document.getElementById('pr-list');
+  const prExercises = S.library.filter(ex=>ex.prMetric);
+  if (prExercises.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = prExercises.map(ex => {
+    let best = 0, bestDate = null;
+    S.logs.forEach(log => {
+      log.exercises.filter(e=>e.exId===ex.id).forEach(e=>{
+        const v = parseFloat(e.metrics[ex.prMetric]);
+        if (v > best) { best=v; bestDate=log.date; }
+      });
+    });
+    const color = CAT_COLORS[ex.cat] || 'var(--muted)';
+    const pct = ex.id==='cindy' ? Math.min(100,Math.round(best/10*100)) : null;
+    return `
+      <div class="card" style="border-left:3px solid ${color};">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:${pct!==null?'10px':'0'};">
+          <div style="flex:1">
+            <div style="font-family:'Bebas Neue',sans-serif;font-size:1rem;letter-spacing:1px;">${ex.name}</div>
+            <div style="font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);">${ex.prMetric}</div>
+          </div>
+          <div style="font-family:'Bebas Neue',sans-serif;font-size:1.8rem;color:${color};">${best||'—'}</div>
+          ${bestDate?`<div style="font-family:'IBM Plex Mono',monospace;font-size:.6rem;color:var(--muted);">${fmtDate(bestDate)}</div>`:''}
+        </div>
+        ${pct!==null?`<div class="prog-bar-bg"><div class="prog-bar-fill" style="width:${pct}%;background:${color};"></div></div><div class="prog-labels"><span>0</span><span>🏆 Goal: 10 rds</span></div>`:''}
+      </div>`;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════
+// LIBRARY
+// ═══════════════════════════════════════════════
+function renderLibrary() {
+  const el = document.getElementById('library-list');
+  el.innerHTML = S.library.map((ex,i) => {
+    const color = CAT_COLORS[ex.cat] || 'var(--muted)';
+    const isDefault = DEFAULT_LIBRARY.some(d=>d.id===ex.id);
+    return `
+      <div class="lib-item" style="border-left:3px solid ${color};">
+        <div class="lib-item-header">
+          <div>
+            <div class="lib-name">${ex.name}</div>
+            <div class="lib-cat">${ex.cat} · PR tracked: ${ex.prMetric||'none'}</div>
+          </div>
+          ${!isDefault?`<button class="btn btn-del" onclick="deleteExercise('${ex.id}')">Delete</button>`:''}
+        </div>
+        <div class="lib-metrics">
+          ${ex.metrics.map(m=>`<span class="lib-metric-chip">${m.label} (${m.type})</span>`).join('')}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function deleteExercise(id) {
+  if (!confirm('Delete this exercise from your library?')) return;
+  S.library = S.library.filter(e=>e.id!==id);
+  save();
+  renderLibrary();
+  toast('Exercise removed');
+}
+
+// ═══════════════════════════════════════════════
+// MODAL — NEW EXERCISE
+// ═══════════════════════════════════════════════
+let tempMetrics = [];
+
+function openNewExModal() {
+  tempMetrics = [];
+  document.getElementById('modal-title-text').textContent = 'New Exercise';
+  document.getElementById('modal-body').innerHTML = `
+    <div class="igroup" style="margin-bottom:10px;">
+      <label class="label">Exercise Name</label>
+      <input type="text" id="new-ex-name" placeholder="e.g. Handstand Push-ups">
+    </div>
+    <div class="row2" style="margin-bottom:10px;">
+      <div class="igroup">
+        <label class="label">Category</label>
+        <select id="new-ex-cat">
+          <option value="pull">Pull</option>
+          <option value="push">Push</option>
+          <option value="leg">Leg</option>
+          <option value="wod">WOD</option>
+          <option value="skill">Skill</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="igroup">
+        <label class="label">PR Metric key</label>
+        <input type="text" id="new-ex-pr" placeholder="e.g. total (optional)">
+      </div>
+    </div>
+    <div class="label" style="margin-bottom:8px;">Metrics to Track</div>
+    <div id="metric-defs"></div>
+    <button class="btn btn-ghost btn-full btn-sm" onclick="addMetricDef()" style="margin-bottom:14px;">+ Add metric</button>
+    <button class="btn btn-y" onclick="saveNewExercise()">✓ Add to Library</button>
+  `;
+  renderMetricDefs();
+  openModal();
+}
+
+function addMetricDef() {
+  tempMetrics.push({key:'', label:'', type:'number'});
+  renderMetricDefs();
+}
+
+function renderMetricDefs() {
+  const el = document.getElementById('metric-defs');
+  if (!el) return;
+  el.innerHTML = tempMetrics.map((m,i)=>`
+    <div class="metric-def-row">
+      <input type="text" placeholder="Label" value="${m.label}" style="flex:1;background:var(--s3);" oninput="tempMetrics[${i}].label=this.value;tempMetrics[${i}].key=this.value.toLowerCase().replace(/\\s+/g,'_')">
+      <select style="width:80px;background:var(--s3);" onchange="tempMetrics[${i}].type=this.value">
+        <option value="number" ${m.type==='number'?'selected':''}>num</option>
+        <option value="text" ${m.type==='text'?'selected':''}>text</option>
+        <option value="checkbox" ${m.type==='checkbox'?'selected':''}>check</option>
+      </select>
+      <button class="btn btn-del" onclick="tempMetrics.splice(${i},1);renderMetricDefs()">✕</button>
+    </div>
+  `).join('');
+}
+
+function saveNewExercise() {
+  const name = document.getElementById('new-ex-name').value.trim();
+  if (!name) { toast('Enter a name'); return; }
+  const cat = document.getElementById('new-ex-cat').value;
+  const prKey = document.getElementById('new-ex-pr').value.trim() || null;
+  const id = name.toLowerCase().replace(/[^a-z0-9]+/g,'_')+'_'+Date.now();
+  const metrics = tempMetrics.filter(m=>m.label);
+  S.library.push({id, name, cat, metrics, prMetric: prKey, notes:true});
+  save();
+  closeModalDirect();
+  toast(`"${name}" added to library!`);
+  renderExPicker();
+  renderLibrary();
+}
+
+// ═══════════════════════════════════════════════
+// MODAL HELPERS
+// ═══════════════════════════════════════════════
+function openModal() {
+  document.getElementById('modal-bg').classList.add('open');
+}
+function closeModal(e) {
+  if (e.target === document.getElementById('modal-bg')) closeModalDirect();
+}
+function closeModalDirect() {
+  document.getElementById('modal-bg').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════════
+renderToday();
+</script>
+</body>
+</html>
