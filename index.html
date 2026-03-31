@@ -361,7 +361,8 @@ let cloudPin = null; // loaded from Supabase
 async function pinCheckSession() {
   // Check if already unlocked today
   const unlocked = localStorage.getItem(PIN_UNLOCKED_KEY);
-  const today = new Date().toISOString().slice(0,10);
+  const d = new Date();
+  const today = d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
   if (unlocked === today) {
     document.getElementById('pin-screen').classList.add('hidden');
     return;
@@ -441,7 +442,8 @@ async function handlePinComplete() {
       // Cache locally for offline use
       localStorage.setItem('dailyworkout_pin_cache', pinBuffer);
       cloudPin = pinBuffer;
-      const today = new Date().toISOString().slice(0,10);
+      const d2 = new Date();
+  const today = d2.getFullYear()+'-'+String(d2.getMonth()+1).padStart(2,'0')+'-'+String(d2.getDate()).padStart(2,'0');
       localStorage.setItem(PIN_UNLOCKED_KEY, today);
       document.getElementById('pin-screen').classList.add('hidden');
     } else {
@@ -591,19 +593,26 @@ async function supaFetch(method, table, body=null, match=null) {
 }
 
 function loadState() {
-  try {
-    const raw = localStorage.getItem('dailyworkout_v2');
-    if (raw) return JSON.parse(raw);
-  } catch(e){}
-  return {
+  const fresh = {
     library: DEFAULT_LIBRARY,
     logs: [],
-    todayDraft: {exercises:[], dayNote:''},
+    todayDraft: {exercises:[], dayNote:''}
   };
+  try {
+    const raw = localStorage.getItem('dailyworkout_v2');
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      // Never restore todayDraft from storage
+      return {...fresh, logs: parsed.logs||[], library: parsed.library||DEFAULT_LIBRARY};
+    }
+  } catch(e){}
+  return fresh;
 }
 
 function save() {
-  localStorage.setItem('dailyworkout_v2', JSON.stringify(S));
+  // Never persist todayDraft
+  const toStore = {logs: S.logs, library: S.library};
+  localStorage.setItem('dailyworkout_v2', JSON.stringify(toStore));
   syncToCloud().catch(()=>{});
 }
 
@@ -662,7 +671,8 @@ async function loadFromCloud() {
 }
 
 function todayStr() {
-  return new Date().toISOString().slice(0,10);
+  const d = new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
 }
 
 function fmtDate(str) {
@@ -1281,16 +1291,27 @@ function importData(event) {
 async function init() {
   // Check PIN first
   pinCheckSession();
-  // Render immediately from local state
+
+  // Always start with fresh draft
+  const today = todayStr();
+  const existingToday = S.logs.find(l=>l.date===today);
+  if (existingToday) {
+    S.todayDraft = {exercises: JSON.parse(JSON.stringify(existingToday.exercises)), dayNote: existingToday.dayNote||''};
+  } else {
+    S.todayDraft = {exercises:[], dayNote:''};
+  }
   renderToday();
 
   // Sync from cloud in background
   try {
-    const hadData = S.logs.length;
-    const loaded = await loadFromCloud();
-    if (loaded && S.logs.length !== hadData) {
-      renderToday();
+    await loadFromCloud();
+    const todayCloud = S.logs.find(l=>l.date===today);
+    if (todayCloud) {
+      S.todayDraft = {exercises: JSON.parse(JSON.stringify(todayCloud.exercises)), dayNote: todayCloud.dayNote||''};
+    } else {
+      S.todayDraft = {exercises:[], dayNote:''};
     }
+    renderToday();
   } catch(e) {}
 }
 
