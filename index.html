@@ -458,11 +458,24 @@ async function loadFromCloud() {
   try {
     const logs = await supaFetch('GET', 'workout_logs', null, `user_id=eq.${USER_ID}&order=log_date.desc`);
     if (Array.isArray(logs) && logs.length > 0) {
-      S.logs = logs.map(r => ({
+      // MERGE: cloud logs + any local-only logs not yet in cloud
+      const cloudLogs = logs.map(r => ({
         date: r.log_date,
         exercises: r.exercises,
         dayNote: r.day_note
       }));
+      const cloudDates = new Set(cloudLogs.map(l=>l.date));
+      const localOnly = S.logs.filter(l=>!cloudDates.has(l.date));
+      S.logs = [...cloudLogs, ...localOnly].sort((a,b)=>b.date.localeCompare(a.date));
+      // Push any local-only logs up to cloud
+      for (const log of localOnly) {
+        await supaFetch('POST', 'workout_logs', {
+          user_id: USER_ID,
+          log_date: log.date,
+          exercises: log.exercises,
+          day_note: log.dayNote || ''
+        });
+      }
     }
     const profiles = await supaFetch('GET', 'workout_profile', null, `user_id=eq.${USER_ID}`);
     if (Array.isArray(profiles) && profiles.length > 0) {
