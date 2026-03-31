@@ -396,6 +396,28 @@ const DEFAULT_LIBRARY = [
 
 let S = loadState();
 
+const SUPA_URL = 'https://jizohsnmignpmrpgzmzd.supabase.co';
+const SUPA_KEY = 'sb_publishable_pW6I2bGvVJYGvj5a2XbkkA_wFi60Z0d';
+const USER_ID  = 'jonathan';
+
+async function supaFetch(method, table, body=null, match=null) {
+  let url = `${SUPA_URL}/rest/v1/${table}`;
+  if (match) url += `?${match}`;
+  const opts = {
+    method,
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': `Bearer ${SUPA_KEY}`,
+      'Content-Type': 'application/json',
+      'Prefer': method==='POST' ? 'resolution=merge-duplicates,return=minimal' : 'return=minimal'
+    }
+  };
+  if (body) opts.body = JSON.stringify(body);
+  const r = await fetch(url, opts);
+  if (method==='GET') return r.json();
+  return r.ok;
+}
+
 function loadState() {
   try {
     const raw = localStorage.getItem('dailyworkout_v2');
@@ -403,13 +425,55 @@ function loadState() {
   } catch(e){}
   return {
     library: DEFAULT_LIBRARY,
-    logs: [],          // [{date, exercises:[{exId, metrics:{}, note}], dayNote}]
+    logs: [],
     todayDraft: {exercises:[], dayNote:''},
   };
 }
 
 function save() {
   localStorage.setItem('dailyworkout_v2', JSON.stringify(S));
+  syncToCloud().catch(()=>{});
+}
+
+async function syncToCloud() {
+  // Upsert library (custom exercises)
+  await supaFetch('POST', 'workout_profile', {
+    user_id: USER_ID,
+    library: S.library
+  });
+  // Upsert today's log
+  const today = todayStr();
+  const todayLog = S.logs.find(l=>l.date===today);
+  if (todayLog) {
+    await supaFetch('POST', 'workout_logs', {
+      user_id: USER_ID,
+      log_date: todayLog.date,
+      exercises: todayLog.exercises,
+      day_note: todayLog.dayNote || ''
+    });
+  }
+}
+
+async function loadFromCloud() {
+  try {
+    const logs = await supaFetch('GET', 'workout_logs', null, `user_id=eq.${USER_ID}&order=log_date.desc`);
+    if (Array.isArray(logs) && logs.length > 0) {
+      S.logs = logs.map(r => ({
+        date: r.log_date,
+        exercises: r.exercises,
+        dayNote: r.day_note
+      }));
+    }
+    const profiles = await supaFetch('GET', 'workout_profile', null, `user_id=eq.${USER_ID}`);
+    if (Array.isArray(profiles) && profiles.length > 0) {
+      const p = profiles[0];
+      if (p.library && p.library.length > 0) S.library = p.library;
+    }
+    localStorage.setItem('dailyworkout_v2', JSON.stringify(S));
+    return true;
+  } catch(e) {
+    return false;
+  }
 }
 
 function todayStr() {
@@ -1029,7 +1093,21 @@ function importData(event) {
 // ═══════════════════════════════════════════════
 // INIT
 // ═══════════════════════════════════════════════
-renderToday();
+async function init() {
+  // Render immediately from local state
+  renderToday();
+
+  // Sync from cloud in background
+  try {
+    const hadData = S.logs.length;
+    const loaded = await loadFromCloud();
+    if (loaded && S.logs.length !== hadData) {
+      renderToday();
+    }
+  } catch(e) {}
+}
+
+init();
 </script>
 </body>
 </html>
