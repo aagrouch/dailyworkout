@@ -268,6 +268,22 @@ select option{background:var(--s2);}
       <div class="sec">Exercise Library</div>
       <button class="btn btn-g btn-full" onclick="openNewExModal()" style="margin-bottom:12px;">+ Add New Exercise</button>
       <div id="library-list"></div>
+
+      <div class="sec" style="margin-top:16px;">Data & Backup</div>
+      <div class="card">
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.68rem;color:var(--muted);line-height:1.8;margin-bottom:12px;">
+          Your workout data lives in Safari. Export regularly to keep a backup — especially before clearing Safari data or switching phones.
+        </div>
+        <button class="btn btn-g btn-full" onclick="exportData()" style="margin-bottom:8px;">⬇ Export My Data</button>
+        <label class="btn btn-ghost btn-full" style="cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;">
+          ⬆ Import Backup
+          <input type="file" accept=".json" onchange="importData(event)" style="display:none;">
+        </label>
+        <div style="font-family:'IBM Plex Mono',monospace;font-size:.58rem;color:var(--muted);margin-top:10px;text-align:center;">
+          Tip: save exported file to iCloud Drive
+        </div>
+      </div>
+
       <div style="height:24px;"></div>
     </div>
   </div>
@@ -961,6 +977,53 @@ function closeModal(e) {
 }
 function closeModalDirect() {
   document.getElementById('modal-bg').classList.remove('open');
+}
+
+// ═══════════════════════════════════════════════
+// EXPORT / IMPORT
+// ═══════════════════════════════════════════════
+function exportData() {
+  const data = JSON.stringify(S, null, 2);
+  const blob = new Blob([data], {type: 'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  const date = new Date().toISOString().slice(0,10);
+  a.href = url;
+  a.download = `dailyworkout-backup-${date}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('✓ Data exported — save to iCloud Drive!');
+}
+
+function importData(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const imported = JSON.parse(e.target.result);
+      if (!imported.logs) { toast('Invalid backup file'); return; }
+      // Merge logs — keep existing + add any new from import
+      const existingDates = new Set(S.logs.map(l=>l.date));
+      const newLogs = imported.logs.filter(l=>!existingDates.has(l.date));
+      S.logs = [...S.logs, ...newLogs].sort((a,b)=>a.date.localeCompare(b.date));
+      // Merge library — add any custom exercises not already present
+      if (imported.library) {
+        const existingIds = new Set(S.library.map(e=>e.id));
+        const newExercises = imported.library.filter(e=>!existingIds.has(e.id));
+        S.library = [...S.library, ...newExercises];
+      }
+      save();
+      renderToday();
+      toast(`✓ Imported ${newLogs.length} new day(s)!`);
+    } catch(err) {
+      toast('Could not read backup file');
+    }
+  };
+  reader.readAsText(file);
+  event.target.value = '';
 }
 
 // ═══════════════════════════════════════════════
