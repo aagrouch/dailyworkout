@@ -437,7 +437,7 @@ function handlePinComplete() {
   }
 }
 
-pinCheckSession();
+// PIN init deferred to after DOM ready — called at bottom of script
 
 // ═══════════════════════════════════════════════
 // STATE
@@ -1241,6 +1241,8 @@ function importData(event) {
 // INIT
 // ═══════════════════════════════════════════════
 async function init() {
+  // Check PIN first
+  pinCheckSession();
   // Render immediately from local state
   renderToday();
 
