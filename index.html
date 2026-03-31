@@ -352,29 +352,48 @@ select option{background:var(--s2);}
 // ═══════════════════════════════════════════════
 // PIN LOCK
 // ═══════════════════════════════════════════════
-const PIN_KEY = 'dailyworkout_pin';
 const PIN_UNLOCKED_KEY = 'dailyworkout_unlocked';
 let pinBuffer = '';
-let pinMode = 'enter';
+let pinMode = 'enter'; // 'setup' | 'confirm' | 'enter'
 let pinSetupFirst = '';
+let cloudPin = null; // loaded from Supabase
 
-function pinCheckSession() {
-  const stored = localStorage.getItem(PIN_KEY);
-  if (!stored) {
-    pinMode = 'setup';
-    document.getElementById('pin-msg').textContent = 'Create a 4-digit PIN';
-    document.getElementById('pin-hint').textContent = 'You will need this every day to open the app';
-    return;
-  }
+async function pinCheckSession() {
+  // Check if already unlocked today
   const unlocked = localStorage.getItem(PIN_UNLOCKED_KEY);
   const today = new Date().toISOString().slice(0,10);
   if (unlocked === today) {
     document.getElementById('pin-screen').classList.add('hidden');
     return;
   }
-  pinMode = 'enter';
-  document.getElementById('pin-msg').textContent = 'Enter your PIN';
-  document.getElementById('pin-hint').textContent = '';
+  // Load PIN from Supabase
+  try {
+    const profiles = await supaFetch('GET', 'workout_profile', null, 'user_id=eq.' + USER_ID);
+    if (Array.isArray(profiles) && profiles.length > 0 && profiles[0].pin) {
+      cloudPin = profiles[0].pin;
+      pinMode = 'enter';
+      document.getElementById('pin-msg').textContent = 'Enter your PIN';
+      document.getElementById('pin-hint').textContent = '';
+    } else {
+      // No PIN set yet
+      cloudPin = null;
+      pinMode = 'setup';
+      document.getElementById('pin-msg').textContent = 'Create a 4-digit PIN';
+      document.getElementById('pin-hint').textContent = 'You will need this every day to open the app';
+    }
+  } catch(e) {
+    // Offline — fall back to local cached PIN
+    const local = localStorage.getItem('dailyworkout_pin_cache');
+    if (local) {
+      cloudPin = local;
+      pinMode = 'enter';
+      document.getElementById('pin-msg').textContent = 'Enter your PIN';
+      document.getElementById('pin-hint').textContent = '(offline mode)';
+    } else {
+      // No cached PIN and offline — let them in
+      document.getElementById('pin-screen').classList.add('hidden');
+    }
+  }
 }
 
 function pinPress(digit) {
@@ -402,8 +421,7 @@ function pinError() {
   setTimeout(() => { pinBuffer=''; updatePinDots(); }, 600);
 }
 
-function handlePinComplete() {
-  const stored = localStorage.getItem(PIN_KEY);
+async function handlePinComplete() {
   if (pinMode === 'setup') {
     pinSetupFirst = pinBuffer;
     pinBuffer = '';
@@ -415,7 +433,14 @@ function handlePinComplete() {
   }
   if (pinMode === 'confirm') {
     if (pinBuffer === pinSetupFirst) {
-      localStorage.setItem(PIN_KEY, pinBuffer);
+      // Save PIN to Supabase
+      await supaFetch('POST', 'workout_profile', {
+        user_id: USER_ID,
+        pin: pinBuffer
+      });
+      // Cache locally for offline use
+      localStorage.setItem('dailyworkout_pin_cache', pinBuffer);
+      cloudPin = pinBuffer;
       const today = new Date().toISOString().slice(0,10);
       localStorage.setItem(PIN_UNLOCKED_KEY, today);
       document.getElementById('pin-screen').classList.add('hidden');
@@ -427,7 +452,10 @@ function handlePinComplete() {
     }
     return;
   }
-  if (pinBuffer === stored) {
+  // enter mode — check against cloud PIN
+  if (pinBuffer === cloudPin) {
+    // Cache for offline
+    localStorage.setItem('dailyworkout_pin_cache', cloudPin);
     const today = new Date().toISOString().slice(0,10);
     localStorage.setItem(PIN_UNLOCKED_KEY, today);
     document.getElementById('pin-screen').classList.add('hidden');
