@@ -330,19 +330,19 @@ select option{background:var(--s2);}
     <div class="pin-dot" id="pd2"></div>
     <div class="pin-dot" id="pd3"></div>
   </div>
-  <div class="pin-grid">
-    <button class="pin-btn" onclick="pinPress('1')">1</button>
-    <button class="pin-btn" onclick="pinPress('2')">2</button>
-    <button class="pin-btn" onclick="pinPress('3')">3</button>
-    <button class="pin-btn" onclick="pinPress('4')">4</button>
-    <button class="pin-btn" onclick="pinPress('5')">5</button>
-    <button class="pin-btn" onclick="pinPress('6')">6</button>
-    <button class="pin-btn" onclick="pinPress('7')">7</button>
-    <button class="pin-btn" onclick="pinPress('8')">8</button>
-    <button class="pin-btn" onclick="pinPress('9')">9</button>
+  <div class="pin-grid" id="pin-grid">
+    <button class="pin-btn" data-pin="1">1</button>
+    <button class="pin-btn" data-pin="2">2</button>
+    <button class="pin-btn" data-pin="3">3</button>
+    <button class="pin-btn" data-pin="4">4</button>
+    <button class="pin-btn" data-pin="5">5</button>
+    <button class="pin-btn" data-pin="6">6</button>
+    <button class="pin-btn" data-pin="7">7</button>
+    <button class="pin-btn" data-pin="8">8</button>
+    <button class="pin-btn" data-pin="9">9</button>
     <div></div>
-    <button class="pin-btn" onclick="pinPress('0')">0</button>
-    <button class="pin-btn del" onclick="pinDel()">⌫</button>
+    <button class="pin-btn" data-pin="0">0</button>
+    <button class="pin-btn del" data-pin="del">⌫</button>
   </div>
   <div class="pin-hint" id="pin-hint"></div>
 </div>
@@ -363,7 +363,7 @@ function pinCheckSession() {
   if (!stored) {
     pinMode = 'setup';
     document.getElementById('pin-msg').textContent = 'Create a 4-digit PIN';
-    document.getElementById('pin-hint').textContent = 'You'll need this every day to open the app';
+    document.getElementById('pin-hint').textContent = 'You will need this every day to open the app';
     return;
   }
   const unlocked = localStorage.getItem(PIN_UNLOCKED_KEY);
@@ -422,7 +422,7 @@ function handlePinComplete() {
     } else {
       pinSetupFirst = '';
       pinMode = 'setup';
-      document.getElementById('pin-msg').textContent = 'PINs didn't match — try again';
+      document.getElementById('pin-msg').textContent = 'PINs did not match — try again';
       pinError();
     }
     return;
@@ -438,6 +438,16 @@ function handlePinComplete() {
 }
 
 // PIN init deferred to after DOM ready — called at bottom of script
+// Attach PIN button listeners after DOM ready
+document.addEventListener('DOMContentLoaded', function() {
+  document.getElementById('pin-grid').addEventListener('click', function(e) {
+    const btn = e.target.closest('[data-pin]');
+    if (!btn) return;
+    const val = btn.dataset.pin;
+    if (val === 'del') pinDel();
+    else pinPress(val);
+  });
+});
 
 // ═══════════════════════════════════════════════
 // STATE
